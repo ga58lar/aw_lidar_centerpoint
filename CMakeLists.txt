@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
 project(lidar_centerpoint)
 
-find_package(autoware_cmake REQUIRED)
-autoware_package()
+find_package(Eigen3 REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 # TODO(lidar_centerpoint): Remove once upgrading to TensorRT 8.5 is complete
 add_compile_options(-Wno-deprecated-declarations)
@@ -70,16 +70,13 @@ else()
 endif()
 
 if(TRT_AVAIL AND CUDA_AVAIL AND CUDNN_AVAIL)
-  find_package(ament_cmake_auto REQUIRED)
-  ament_auto_find_build_dependencies()
-
   include_directories(
     include
     ${CUDA_INCLUDE_DIRS}
   )
 
   ### centerpoint ###
-  ament_auto_add_library(centerpoint_lib SHARED
+  add_library(centerpoint_lib SHARED
     lib/centerpoint_trt.cpp
     lib/detection_class_remapper.cpp
     lib/utils.cpp
@@ -98,6 +95,9 @@ if(TRT_AVAIL AND CUDA_AVAIL AND CUDNN_AVAIL)
     lib/preprocess/preprocess_kernel.cu
   )
 
+  # Main executable
+  add_executable(centerpoint_detector src/main.cpp)
+
   target_link_libraries(centerpoint_lib
     ${NVINFER}
     ${NVONNXPARSER}
@@ -106,6 +106,8 @@ if(TRT_AVAIL AND CUDA_AVAIL AND CUDNN_AVAIL)
     ${CUDA_curand_LIBRARY}
     ${CUDNN_LIBRARY}
     centerpoint_cuda_lib
+    yaml-cpp
+    Eigen3::Eigen
   )
 
   target_include_directories(centerpoint_lib
@@ -120,32 +122,15 @@ if(TRT_AVAIL AND CUDA_AVAIL AND CUDNN_AVAIL)
     SYSTEM PUBLIC
       ${CUDA_INCLUDE_DIRS}
   )
-
-  ## node ##
-  ament_auto_add_library(lidar_centerpoint_component SHARED
-    src/node.cpp
+  
+  target_link_libraries(centerpoint_detector
+  centerpoint_lib
   )
 
-  target_link_libraries(lidar_centerpoint_component
-    centerpoint_lib
-  )
-
-  rclcpp_components_register_node(lidar_centerpoint_component
-    PLUGIN "centerpoint::LidarCenterPointNode"
-    EXECUTABLE lidar_centerpoint_node
-  )
-
-  ament_export_dependencies(ament_cmake_python)
-
-  ament_auto_package(
-    INSTALL_TO_SHARE
-      launch
-      config
-  )
-
-  install(
-    TARGETS centerpoint_cuda_lib
-    DESTINATION lib
+  # Installation
+  install(TARGETS centerpoint_detector centerpoint_lib centerpoint_cuda_lib
+      RUNTIME DESTINATION bin
+      LIBRARY DESTINATION lib
   )
 else()
   find_package(ament_cmake_auto REQUIRED)

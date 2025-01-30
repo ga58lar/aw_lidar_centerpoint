@@ -14,8 +14,6 @@
 
 #include "lidar_centerpoint/preprocess/voxel_generator.hpp"
 
-#include <sensor_msgs/point_cloud2_iterator.hpp>
-
 namespace centerpoint
 {
 VoxelGeneratorTemplate::VoxelGeneratorTemplate(
@@ -38,9 +36,9 @@ VoxelGeneratorTemplate::VoxelGeneratorTemplate(
 }
 
 bool VoxelGeneratorTemplate::enqueuePointCloud(
-  const sensor_msgs::msg::PointCloud2 & input_pointcloud_msg, const tf2_ros::Buffer & tf_buffer)
+  const std::vector<Eigen::Vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp)
 {
-  return pd_ptr_->enqueuePointCloud(input_pointcloud_msg, tf_buffer);
+  return pd_ptr_->enqueuePointCloud(input_pointcloud, tf, timestamp);
 }
 
 std::size_t VoxelGenerator::generateSweepPoints(std::vector<float> & points)
@@ -49,22 +47,21 @@ std::size_t VoxelGenerator::generateSweepPoints(std::vector<float> & points)
   size_t point_counter{};
   for (auto pc_cache_iter = pd_ptr_->getPointCloudCacheIter(); !pd_ptr_->isCacheEnd(pc_cache_iter);
        pc_cache_iter++) {
-    auto pc_msg = pc_cache_iter->pointcloud_msg;
+    auto pc_msg = pc_cache_iter->pointcloud;
     auto affine_past2current =
       pd_ptr_->getAffineWorldToCurrent() * pc_cache_iter->affine_past2world;
     float time_lag = static_cast<float>(
-      pd_ptr_->getCurrentTimestamp() - rclcpp::Time(pc_msg.header.stamp).seconds());
+      pd_ptr_->getCurrentTimestamp() - pc_cache_iter->timestamp);
 
-    for (sensor_msgs::PointCloud2ConstIterator<float> x_iter(pc_msg, "x"), y_iter(pc_msg, "y"),
-         z_iter(pc_msg, "z");
-         x_iter != x_iter.end(); ++x_iter, ++y_iter, ++z_iter) {
-      point_past << *x_iter, *y_iter, *z_iter;
+    for (const auto& point : pc_msg) {
+      point_past << point.x(), point.y(), point.z();  // Use first 3 components
       point_current = affine_past2current * point_past;
 
-      points.at(point_counter * config_.point_feature_size_) = point_current.x();
-      points.at(point_counter * config_.point_feature_size_ + 1) = point_current.y();
-      points.at(point_counter * config_.point_feature_size_ + 2) = point_current.z();
-      points.at(point_counter * config_.point_feature_size_ + 3) = time_lag;
+      // Fill feature vector
+      points[point_counter * config_.point_feature_size_] = point_current.x();
+      points[point_counter * config_.point_feature_size_ + 1] = point_current.y();
+      points[point_counter * config_.point_feature_size_ + 2] = point_current.z();
+      points[point_counter * config_.point_feature_size_ + 3] = time_lag;
       ++point_counter;
     }
   }

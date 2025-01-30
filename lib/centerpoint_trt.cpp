@@ -17,12 +17,14 @@
 #include <lidar_centerpoint/centerpoint_config.hpp>
 #include <lidar_centerpoint/network/scatter_kernel.hpp>
 #include <lidar_centerpoint/preprocess/preprocess_kernel.hpp>
-#include <tier4_autoware_utils/math/constants.hpp>
 
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
 
 namespace centerpoint
 {
@@ -106,7 +108,7 @@ void CenterPointTRT::initPtr()
 }
 
 bool CenterPointTRT::detect(
-  const sensor_msgs::msg::PointCloud2 & input_pointcloud_msg, const tf2_ros::Buffer & tf_buffer,
+  const std::vector<Eigen::vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp,
   std::vector<Box3D> & det_boxes3d)
 {
   CHECK_CUDA_ERROR(cudaMemsetAsync(
@@ -114,9 +116,8 @@ bool CenterPointTRT::detect(
   CHECK_CUDA_ERROR(
     cudaMemsetAsync(spatial_features_d_.get(), 0, spatial_features_size_ * sizeof(float), stream_));
 
-  if (!preprocess(input_pointcloud_msg, tf_buffer)) {
-    RCLCPP_WARN_STREAM(
-      rclcpp::get_logger("lidar_centerpoint"), "Fail to preprocess and skip to detect.");
+  if (!preprocess(input_pointcloud, tf)) {
+    std::cout << "Fail to preprocess and skip to detect. \n";
     return false;
   }
 
@@ -128,9 +129,9 @@ bool CenterPointTRT::detect(
 }
 
 bool CenterPointTRT::preprocess(
-  const sensor_msgs::msg::PointCloud2 & input_pointcloud_msg, const tf2_ros::Buffer & tf_buffer)
+  const std::vector<Eigen::Vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp)
 {
-  bool is_success = vg_ptr_->enqueuePointCloud(input_pointcloud_msg, tf_buffer);
+  bool is_success = vg_ptr_->enqueuePointCloud(input_pointcloud, tf, timestamp);
   if (!is_success) {
     return false;
   }
@@ -198,7 +199,7 @@ void CenterPointTRT::postProcess(std::vector<Box3D> & det_boxes3d)
     head_out_heatmap_d_.get(), head_out_offset_d_.get(), head_out_z_d_.get(), head_out_dim_d_.get(),
     head_out_rot_d_.get(), head_out_vel_d_.get(), det_boxes3d, stream_));
   if (det_boxes3d.size() == 0) {
-    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("lidar_centerpoint"), "No detected boxes.");
+    std::cout << "No detected boxes. \n";
   }
 }
 

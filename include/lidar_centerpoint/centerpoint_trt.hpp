@@ -20,15 +20,13 @@
 #include <lidar_centerpoint/postprocess/postprocess_kernel.hpp>
 #include <lidar_centerpoint/preprocess/voxel_generator.hpp>
 
-#include <sensor_msgs/msg/point_cloud2.hpp>
-
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
 
 namespace centerpoint
 {
@@ -64,14 +62,14 @@ public:
   virtual ~CenterPointTRT();
 
   bool detect(
-    const sensor_msgs::msg::PointCloud2 & input_pointcloud_msg, const tf2_ros::Buffer & tf_buffer,
+    const std::vector<Eigen::Vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp,
     std::vector<Box3D> & det_boxes3d);
 
 protected:
   void initPtr();
 
   virtual bool preprocess(
-    const sensor_msgs::msg::PointCloud2 & input_pointcloud_msg, const tf2_ros::Buffer & tf_buffer);
+    const std::vector<Eigen::Vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp);
 
   void inference();
 

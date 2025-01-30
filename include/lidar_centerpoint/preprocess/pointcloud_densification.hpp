@@ -15,41 +15,34 @@
 #ifndef LIDAR_CENTERPOINT__PREPROCESS__POINTCLOUD_DENSIFICATION_HPP_
 #define LIDAR_CENTERPOINT__PREPROCESS__POINTCLOUD_DENSIFICATION_HPP_
 
-#include <tf2_ros/buffer.h>
-#include <tf2_ros/transform_listener.h>
-#ifdef ROS_DISTRO_GALACTIC
-#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
-#else
-#include <tf2_sensor_msgs/tf2_sensor_msgs.hpp>
-#endif
-
 #include <list>
 #include <string>
 #include <utility>
+
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
 
 namespace centerpoint
 {
 class DensificationParam
 {
 public:
-  DensificationParam(const std::string & world_frame_id, const unsigned int num_past_frames)
-  : world_frame_id_(std::move(world_frame_id)),
-    pointcloud_cache_size_(num_past_frames + /*current frame*/ 1)
+  DensificationParam(const unsigned int num_past_frames)
+  : pointcloud_cache_size_(num_past_frames + /*current frame*/ 1)
   {
   }
 
-  std::string world_frame_id() const { return world_frame_id_; }
   unsigned int pointcloud_cache_size() const { return pointcloud_cache_size_; }
 
 private:
-  std::string world_frame_id_;
   unsigned int pointcloud_cache_size_{1};
 };
 
-struct PointCloudWithTransform
+struct PointCloudWithTransformTime
 {
-  sensor_msgs::msg::PointCloud2 pointcloud_msg;
-  Eigen::Affine3f affine_past2world;
+  std::vector<Eigen::Vector4d> pointcloud;
+  Eigen::Isometry3d affine_past2world;
+  double timestamp;
 };
 
 class PointCloudDensification
@@ -58,28 +51,28 @@ public:
   explicit PointCloudDensification(const DensificationParam & param);
 
   bool enqueuePointCloud(
-    const sensor_msgs::msg::PointCloud2 & input_pointcloud_msg, const tf2_ros::Buffer & tf_buffer);
+    const std::vector<Eigen::Vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp);
 
   double getCurrentTimestamp() const { return current_timestamp_; }
-  Eigen::Affine3f getAffineWorldToCurrent() const { return affine_world2current_; }
-  std::list<PointCloudWithTransform>::iterator getPointCloudCacheIter()
+  Eigen::Isometry3d getAffineWorldToCurrent() const { return affine_world2current_; }
+  std::list<PointCloudWithTransformTime>::iterator getPointCloudCacheIter()
   {
     return pointcloud_cache_.begin();
   }
-  bool isCacheEnd(std::list<PointCloudWithTransform>::iterator iter)
+  bool isCacheEnd(std::list<PointCloudWithTransformTime>::iterator iter)
   {
     return iter == pointcloud_cache_.end();
   }
   unsigned int pointcloud_cache_size() const { return param_.pointcloud_cache_size(); }
 
 private:
-  void enqueue(const sensor_msgs::msg::PointCloud2 & msg, const Eigen::Affine3f & affine);
+  void enqueue(const std::vector<Eigen::Vector4d> & msg, const Eigen::Isometry3d & affine, const double & timestamp);
   void dequeue();
 
   DensificationParam param_;
   double current_timestamp_{0.0};
-  Eigen::Affine3f affine_world2current_;
-  std::list<PointCloudWithTransform> pointcloud_cache_;
+  Eigen::Isometry3d affine_world2current_;
+  std::list<PointCloudWithTransformTime> pointcloud_cache_;
 };
 
 }  // namespace centerpoint

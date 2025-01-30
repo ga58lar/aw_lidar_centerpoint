@@ -18,10 +18,11 @@
 #include <lidar_centerpoint/centerpoint_config.hpp>
 #include <lidar_centerpoint/preprocess/pointcloud_densification.hpp>
 
-#include <sensor_msgs/msg/point_cloud2.hpp>
-
 #include <memory>
 #include <vector>
+
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
 
 namespace centerpoint
 {
@@ -34,7 +35,7 @@ public:
   virtual std::size_t generateSweepPoints(std::vector<float> & points) = 0;
 
   bool enqueuePointCloud(
-    const sensor_msgs::msg::PointCloud2 & input_pointcloud_msg, const tf2_ros::Buffer & tf_buffer);
+    const std::vector<Eigen::Vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp);
 
 protected:
   std::unique_ptr<PointCloudDensification> pd_ptr_{nullptr};
