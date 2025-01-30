@@ -15,6 +15,9 @@
 #include "lidar_centerpoint/utils.hpp"
 
 #include <stdexcept>
+#include <fstream>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
 
 namespace centerpoint
 {
@@ -31,11 +34,11 @@ std::size_t divup(const std::size_t a, const std::size_t b)
   return (a + b - 1) / b;
 }
 
-std::vector<Eigen::Vector4d> loadBIN_kitti(const std::string & bin_path){
+std::vector<Eigen::Vector4f> loadBIN_kitti(const std::string & bin_path){
     // Open the file in binary mode
-    std::ifstream file(pcd_path, std::ios::binary);
+    std::ifstream file(bin_path, std::ios::binary);
     if (!file) {
-        throw std::runtime_error("Cannot open file: " + pcd_path);
+        throw std::runtime_error("Cannot open file: " + bin_path);
     }
 
     // Get the file size
@@ -46,20 +49,17 @@ std::vector<Eigen::Vector4d> loadBIN_kitti(const std::string & bin_path){
     // Read the file into a buffer
     std::vector<float> buffer(size / sizeof(float));
     if (!file.read(reinterpret_cast<char*>(buffer.data()), size)) {
-        throw std::runtime_error("Error reading file: " + pcd_path);
+        throw std::runtime_error("Error reading file: " + bin_path);
     }
     constexpr double VERTICAL_ANGLE_OFFSET = (0.205 * M_PI) / 180.0;
-    std::vector<Eigen::Vector4d> pointCloud;
+    std::vector<Eigen::Vector4f> pointCloud;
     pointCloud.reserve(buffer.size()/3);
     std::vector<Eigen::Vector3d> points;
     for (size_t i = 0; i < buffer.size(); i += 4) {
         Eigen::Vector3d pt {buffer[i], buffer[i + 1], buffer[i + 2]};
         const Eigen::Vector3d rotationVector = pt.cross(Eigen::Vector3d(0., 0., 1.));
         pt = Eigen::AngleAxisd(VERTICAL_ANGLE_OFFSET, rotationVector.normalized()) * pt;
-        const double norm = pt.norm();
-        if (norm > 5.0 || norm < config.max_range) {
-            pointCloud.emplace_back(pt[0], pt[1], pt[2], 1.0);
-        }
+        pointCloud.emplace_back(pt[0], pt[1], pt[2], 1.0);
     }
 
     return pointCloud;

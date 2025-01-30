@@ -35,7 +35,7 @@ public:
   virtual std::size_t generateSweepPoints(std::vector<float> & points) = 0;
 
   bool enqueuePointCloud(
-    const std::vector<Eigen::Vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp);
+    const std::vector<Eigen::Vector4f> & input_pointcloud, const Eigen::Isometry3f & tf, const double & timestamp);
 
 protected:
   std::unique_ptr<PointCloudDensification> pd_ptr_{nullptr};

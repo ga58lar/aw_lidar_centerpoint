@@ -15,7 +15,7 @@
 #ifndef LIDAR_CENTERPOINT__DETECTION_CLASS_REMAPPER_HPP_
 #define LIDAR_CENTERPOINT__DETECTION_CLASS_REMAPPER_HPP_
 
-#include <Eigen/Core>
+#include <eigen3/Eigen/Core>
 
 #include <autoware_auto_perception_msgs/msg/detected_object_kinematics.hpp>
 #include <autoware_auto_perception_msgs/msg/detected_objects.hpp>

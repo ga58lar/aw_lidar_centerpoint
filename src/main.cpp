@@ -4,13 +4,13 @@
 #include <vector>
 #include <filesystem>
 #include <yaml-cpp/yaml.h>
-#include <Eigen/Core>
+#include <eigen3/Eigen/Core>
 #include "lidar_centerpoint/centerpoint_trt.hpp"
 #include "lidar_centerpoint/utils.hpp"
 #include "lidar_centerpoint/centerpoint_config.hpp"
 #include "lidar_centerpoint/preprocess/pointcloud_densification.hpp"
 
-namespace {
+using namespace centerpoint;
 struct ModelConfig {
     std::vector<std::string> class_names;
     int point_feature_size;
@@ -81,10 +81,10 @@ DensificationConfig loadDensificationConfig(const YAML::Node& config) {
     return dense_cfg;
 }
 
-centerpoint::CenterPointConfig createCenterPointConfig(
+CenterPointConfig createCenterPointConfig(
     const ModelConfig& model_cfg, const NetworkConfig& net_cfg)
 {
-    return centerpoint::CenterPointConfig(
+    return CenterPointConfig(
         model_cfg.class_names.size(),
         model_cfg.point_feature_size,
         model_cfg.max_voxel_size,
@@ -143,6 +143,8 @@ int main(int argc, char* argv[]) {
         // Load pointcloud and detect
         auto points = loadBIN_kitti(pointcloud_path);
         std::vector<centerpoint::Box3D> objects;
+        Eigen::Isometry3f tf = Eigen::Isometry3f::Identity();
+        double timestamp = 0.0;
         if (!detector->detect(points, tf, timestamp, objects)) {
             std::cerr << "Detection failed" << std::endl;
             return 1;
@@ -151,9 +153,9 @@ int main(int argc, char* argv[]) {
         // Output results
         for (const auto& obj : objects) {
             std::cout << "Object detected at: " 
-                    << obj.position.x() << ", "
-                    << obj.position.y() << ", "
-                    << obj.position.z() << std::endl;
+                    << obj.x << ", "
+                    << obj.y << ", "
+                    << obj.z << std::endl;
         }
 
         return 0;
@@ -164,6 +166,5 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
+    return 0;
 }
-
-} // namespace

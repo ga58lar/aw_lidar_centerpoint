@@ -62,14 +62,14 @@ public:
   virtual ~CenterPointTRT();
 
   bool detect(
-    const std::vector<Eigen::Vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp,
+    const std::vector<Eigen::Vector4f> & input_pointcloud, const Eigen::Isometry3f & tf, const double & timestamp,
     std::vector<Box3D> & det_boxes3d);
 
 protected:
   void initPtr();
 
   virtual bool preprocess(
-    const std::vector<Eigen::Vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp);
+    const std::vector<Eigen::Vector4f> & input_pointcloud, const Eigen::Isometry3f & tf, const double & timestamp);
 
   void inference();
 

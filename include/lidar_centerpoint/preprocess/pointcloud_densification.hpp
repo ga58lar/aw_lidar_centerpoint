@@ -40,8 +40,8 @@ private:
 
 struct PointCloudWithTransformTime
 {
-  std::vector<Eigen::Vector4d> pointcloud;
-  Eigen::Isometry3d affine_past2world;
+  std::vector<Eigen::Vector4f> pointcloud;
+  Eigen::Isometry3f affine_past2world;
   double timestamp;
 };
 
@@ -51,10 +51,10 @@ public:
   explicit PointCloudDensification(const DensificationParam & param);
 
   bool enqueuePointCloud(
-    const std::vector<Eigen::Vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp);
+    const std::vector<Eigen::Vector4f> & input_pointcloud, const Eigen::Isometry3f & tf, const double & timestamp);
 
   double getCurrentTimestamp() const { return current_timestamp_; }
-  Eigen::Isometry3d getAffineWorldToCurrent() const { return affine_world2current_; }
+  Eigen::Isometry3f getAffineWorldToCurrent() const { return affine_world2current_; }
   std::list<PointCloudWithTransformTime>::iterator getPointCloudCacheIter()
   {
     return pointcloud_cache_.begin();
@@ -66,12 +66,12 @@ public:
   unsigned int pointcloud_cache_size() const { return param_.pointcloud_cache_size(); }
 
 private:
-  void enqueue(const std::vector<Eigen::Vector4d> & msg, const Eigen::Isometry3d & affine, const double & timestamp);
+  void enqueue(const std::vector<Eigen::Vector4f> & msg, const Eigen::Isometry3f & affine, const double & timestamp);
   void dequeue();
 
   DensificationParam param_;
   double current_timestamp_{0.0};
-  Eigen::Isometry3d affine_world2current_;
+  Eigen::Isometry3f affine_world2current_;
   std::list<PointCloudWithTransformTime> pointcloud_cache_;
 };
 

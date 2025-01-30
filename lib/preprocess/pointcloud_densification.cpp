@@ -24,12 +24,12 @@ PointCloudDensification::PointCloudDensification(const DensificationParam & para
 }
 
 bool PointCloudDensification::enqueuePointCloud(
-  const std::vector<Eigen::Vector4d> & pointcloud, const Eigen::Isometry3d & tf, const double & timestamp)
+  const std::vector<Eigen::Vector4f> & pointcloud, const Eigen::Isometry3f & tf, const double & timestamp)
 {
   if (param_.pointcloud_cache_size() > 1) {   
     enqueue(pointcloud, tf, timestamp);
   } else {
-    enqueue(pointcloud, Eigen::Isometry3d::Identity(), timestamp);
+    enqueue(pointcloud, Eigen::Isometry3f::Identity(), timestamp);
   }
 
   dequeue();
@@ -38,8 +38,8 @@ bool PointCloudDensification::enqueuePointCloud(
 }
 
 void PointCloudDensification::enqueue(
-  const std::vector<Eigen::Vector4d> & msg,
-  const Eigen::Isometry3d & affine_world2current,
+  const std::vector<Eigen::Vector4f> & msg,
+  const Eigen::Isometry3f & affine_world2current,
   const double & timestamp)
 {
   affine_world2current_ = affine_world2current;

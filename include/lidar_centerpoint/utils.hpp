@@ -17,7 +17,7 @@
 
 #include <cstddef>
 
-#include <Eigen/Core>
+#include <eigen3/Eigen/Core>
 
 namespace centerpoint
 {
@@ -51,7 +51,7 @@ struct Box3D
 // cspell: ignore divup
 std::size_t divup(const std::size_t a, const std::size_t b);
 
-std::vector<Eigen::Vector4d> loadBIN_kitti(const std::string & bin_path);
+std::vector<Eigen::Vector4f> loadBIN_kitti(const std::string & bin_path);
 
 }  // namespace centerpoint
 

@@ -36,7 +36,7 @@ VoxelGeneratorTemplate::VoxelGeneratorTemplate(
 }
 
 bool VoxelGeneratorTemplate::enqueuePointCloud(
-  const std::vector<Eigen::Vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp)
+  const std::vector<Eigen::Vector4f> & input_pointcloud, const Eigen::Isometry3f & tf, const double & timestamp)
 {
   return pd_ptr_->enqueuePointCloud(input_pointcloud, tf, timestamp);
 }

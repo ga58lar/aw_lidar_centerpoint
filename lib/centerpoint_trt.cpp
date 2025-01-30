@@ -108,7 +108,7 @@ void CenterPointTRT::initPtr()
 }
 
 bool CenterPointTRT::detect(
-  const std::vector<Eigen::vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp,
+  const std::vector<Eigen::Vector4f> & input_pointcloud, const Eigen::Isometry3f & tf, const double & timestamp,
   std::vector<Box3D> & det_boxes3d)
 {
   CHECK_CUDA_ERROR(cudaMemsetAsync(
@@ -116,7 +116,7 @@ bool CenterPointTRT::detect(
   CHECK_CUDA_ERROR(
     cudaMemsetAsync(spatial_features_d_.get(), 0, spatial_features_size_ * sizeof(float), stream_));
 
-  if (!preprocess(input_pointcloud, tf)) {
+  if (!preprocess(input_pointcloud, tf, timestamp)) {
     std::cout << "Fail to preprocess and skip to detect. \n";
     return false;
   }
@@ -129,7 +129,7 @@ bool CenterPointTRT::detect(
 }
 
 bool CenterPointTRT::preprocess(
-  const std::vector<Eigen::Vector4d> & input_pointcloud, const Eigen::Isometry3d & tf, const double & timestamp)
+  const std::vector<Eigen::Vector4f> & input_pointcloud, const Eigen::Isometry3f & tf, const double & timestamp)
 {
   bool is_success = vg_ptr_->enqueuePointCloud(input_pointcloud, tf, timestamp);
   if (!is_success) {
