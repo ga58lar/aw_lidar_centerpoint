@@ -1,1 +1,2 @@
-path: /datasets/kitti/000000.bin
+path: /datasets/kitti/2011_10_03_drive_0027_sync/2011_10_03_drive_0027_sync/velodyne_points/data/0000000000.bin
+directory: /datasets/kitti/2011_10_03_drive_0027_sync/2011_10_03_drive_0027_sync/velodyne_points/data/

@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.22)
 cmake_policy(SET CMP0074 NEW)
 
-project(lidar_centerpoint)
+project(lidar_centerpoint LANGUAGES CXX CUDA)
 
 # Global compile options
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
@@ -68,6 +68,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tensorrt_common)
 
+# Fetch rerun
+FetchContent_Declare(rerun_sdk URL
+    https://github.com/rerun-io/rerun/releases/latest/download/rerun_cpp_sdk.zip)
+FetchContent_MakeAvailable(rerun_sdk)
+
 # Set include directories
 include_directories(
   include
@@ -119,6 +124,7 @@ target_link_libraries(centerpoint_lib PUBLIC
 
 # Build executable
 add_executable(centerpoint_detector src/main.cpp)
+set_property(TARGET centerpoint_detector PROPERTY CXX_STANDARD 20)
 
 target_include_directories(centerpoint_detector PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -139,6 +145,7 @@ target_link_libraries(centerpoint_detector PRIVATE
   yaml-cpp
   Eigen3::Eigen
   stdc++fs
+  rerun_sdk
 )
 
 add_dependencies(centerpoint_detector
