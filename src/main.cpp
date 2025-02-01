@@ -138,7 +138,7 @@ void separatePoints(const std::vector<Eigen::Vector3f>& points,
             Eigen::Quaternionf q;
             q = Eigen::AngleAxisf(0.0, Eigen::Vector3f::UnitX())
                     * Eigen::AngleAxisf(0.0, Eigen::Vector3f::UnitY())
-                    * Eigen::AngleAxisf(box.yaw + M_PI/2, Eigen::Vector3f::UnitZ());
+                    * Eigen::AngleAxisf(-box.yaw - M_PI_2, Eigen::Vector3f::UnitZ());
             
             if (isPointInBox(pt, center, dims, q)) {
                 is_inside = true;
@@ -292,7 +292,7 @@ int main(int argc, char* argv[]) {
                 Eigen::Quaternionf q;
                 q = Eigen::AngleAxisf(0.0, Eigen::Vector3f::UnitX())
                     * Eigen::AngleAxisf(0.0, Eigen::Vector3f::UnitY())
-                    * Eigen::AngleAxisf(obj.yaw + M_PI/2, Eigen::Vector3f::UnitZ());
+                    * Eigen::AngleAxisf(-obj.yaw - M_PI_2, Eigen::Vector3f::UnitZ());
                 quat.push_back(rerun::Quaternion::from_xyzw(q.x(), q.y(), q.z(), q.w()));
             }
 
